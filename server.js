@@ -5,22 +5,19 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Используем новую актуальную библиотеку Google
+// Используем НОВЕЙШУЮ библиотеку 2026 года
 const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 const PORT = process.env.PORT || 8080; 
 
 // БЕРЕМ КЛЮЧ ТОЛЬКО ИЗ ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
-// Никаких ключей текстом в коде!
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// Добавляем проверку: если ключа нет, сервер сразу скажет об этом в логах
 if (!GEMINI_API_KEY) {
-    console.error("❌ КРИТИЧЕСКАЯ ОШИБКА: API ключ Gemini не найден!");
-    console.error("Убедитесь, что прописали GEMINI_API_KEY в настройках Render.");
-    // Не останавливаем сервер жестко, чтобы Render не ушел в вечный цикл перезагрузки, 
-    // но запросы к ИИ будут падать с ошибкой, пока ключ не добавят.
+    console.error("КРИТИЧЕСКАЯ ОШИБКА: GEMINI_API_KEY не найден в переменных окружения!");
+    // Сервер не запустится без ключа, это правильно
+    process.exit(1); 
 }
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
@@ -40,13 +37,9 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'Файл не загружен' });
         
-        if (!GEMINI_API_KEY) {
-            return res.status(500).json({ error: 'Сервер не настроен: отсутствует API ключ.' });
-        }
-        
         const filePath = req.file.path;
         
-        // Подготавливаем файл для нового SDK
+        // Подготавливаем файл для нового SDK 2026
         const imagePart = {
             inlineData: {
                 data: fs.readFileSync(filePath).toString("base64"),
@@ -92,9 +85,9 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
   }
 }`;
 
-        console.log("Отправляем запрос к Gemini...");
+        console.log("Отправляем запрос к Gemini 3.5 Flash...");
         
-        // Запускаем анализ с использованием актуальной модели
+        // Запускаем анализ с использованием АКТУАЛЬНОЙ МОДЕЛИ 2026 ГОДА
         const response = await ai.models.generateContent({
             model: 'gemini-3.5-flash',
             contents: [prompt, imagePart],

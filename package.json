@@ -11,7 +11,7 @@
 "license": "ISC",
 "type": "commonjs",
 "dependencies": {
-"@google/genai": "^0.1.2",
+"@google/genai": "latest",
 "axios": "^1.19.0",
 "cors": "^2.8.6",
 "dotenv": "^16.4.5",

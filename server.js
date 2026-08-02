@@ -132,5 +132,11 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
         res.status(500).json({ error: 'Ошибка при обработке файла. Попробуйте еще раз.' });
     }
 });
+// Добавь это перед app.listen
+app.use(express.static(__dirname)); 
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.listen(PORT, () => console.log(`🚀 Умный сервер запущен на порту ${PORT}`));

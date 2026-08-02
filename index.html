@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScan - Оцифровка чеков и документов</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgBase: '#fbe0c3',
+                        accent: '#ffbb98',
+                        textSec: '#7d8e95',
+                        textMain: '#344648',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-bgBase min-h-screen font-sans flex flex-col m-0 p-0 relative selection:bg-accent selection:text-white">
+
+    <header class="bg-accent bg-opacity-70 px-6 py-4 flex justify-between items-center w-full z-20 relative shadow-sm">
+        <div id="logo-btn" class="flex items-center space-x-2 text-textMain font-bold text-xl cursor-pointer hover:text-white transition-colors" title="На главную">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+            </svg>
+            <span class="italic tracking-wide">SmartScan AI</span>
+        </div>
+         <nav class="flex items-center">
+            <a href="#" id="history-btn" class="text-textMain font-bold hover:text-white transition-colors mr-6">Сохраненные</a>
+            <a href="#" id="trash-btn" class="text-textMain font-bold hover:text-white transition-colors mr-6 flex items-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Корзина
+            </a>
+            <a href="#" id="about-btn" class="text-textMain font-bold hover:text-white transition-colors">О нас</a>
+        </nav>
+    </header>
+
+    <main class="flex-grow relative overflow-hidden flex flex-col items-center pt-16 px-4 z-10 w-full">
+        <!-- Фоновые декорации -->
+        <div class="absolute top-4 -left-20 w-80 h-80 bg-accent opacity-40 rounded-full z-0 pointer-events-none"></div>
+        <div class="absolute bottom-4 -right-20 w-96 h-96 bg-accent opacity-40 rounded-full z-0 pointer-events-none"></div>
+
+        <div id="hero-text" class="text-center z-10 mb-10 mt-4 transition-all duration-300">
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-textMain mb-4 tracking-tight">SmartScan AI</h1>
+            <p class="text-textSec italic text-lg sm:text-xl max-w-xl mx-auto font-medium">
+                Загрузите чек, гарантию или список, мы сделаем все быстро и для Вашего удобства!
+            </p>
+        </div>
+
+        <!-- Зона загрузки файлов (Тут пофикшен баг с фоном) -->
+        <div id="drop-zone" class="z-10 bg-white rounded-[2rem] shadow-sm p-10 max-w-3xl w-full text-center border-[3px] border-dashed border-accent hover:border-textSec hover:shadow-md transition-all mb-10 relative overflow-hidden">
+            
+            <div id="upload-content" class="flex flex-col items-center space-y-5 cursor-pointer group">
+                <div class="p-4 rounded-full bg-bgBase bg-opacity-40 group-hover:scale-110 transition-transform">
+                    <svg class="h-14 w-14 text-accent" stroke="currentColor" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </div>
+                
+                <div class="text-lg text-textSec font-medium">
+                    <label id="upload-label" for="file-upload" class="relative cursor-pointer text-textMain font-semibold hover:underline focus-within:outline-none block w-full h-full">
+                        <span>Загрузить фото или PDF</span>
+                        <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="image/*,.pdf">
+                    </label>
+                    <span class="italic font-light">или перетащите файл сюда</span>
+                </div>
+                <p class="text-sm text-textSec opacity-70 uppercase tracking-widest mt-2">PNG, JPG, PDF до 10 мб</p>
+            </div>
+
+            <!-- Контент во время загрузки -->
+            <div id="loading-content" class="hidden animate-pulse flex-col items-center py-4 w-full">
+                <svg class="animate-spin h-12 w-12 text-accent mb-4 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <div class="text-textMain font-bold text-2xl mb-2 text-center">Анализируем документ...</div>
+                <div class="text-textSec text-base text-center">ИИ извлекает данные, пожалуйста подождите</div>
+            </div>
+        </div>
+
+        <!-- Секция результатов с кнопкой НАЗАД -->
+        <section id="results-section" class="z-10 mt-2 w-full max-w-4xl hidden mb-10">
+            <div class="flex items-center justify-center relative mb-6">
+                <!-- Кнопка Назад -->
+                <button id="back-to-main-btn" class="absolute left-0 p-2 text-textSec hover:text-accent hover:bg-white hover:shadow-sm rounded-full transition-all" title="Назад на главную">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </button>
+                <h2 class="text-2xl font-bold text-textMain text-center">Результат обработки:</h2>
+            </div>
+            
+            <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 overflow-x-auto border-2 border-accent/30 relative">
+                <div id="results-content">
+                    <!-- Сюда вставляется динамическая таблица -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Секция ошибки (отдельно от результатов) -->
+        <section id="error-section" class="z-10 mt-2 w-full max-w-3xl hidden mb-10">
+             <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 overflow-hidden border-2 border-red-200 relative">
+                <div id="error-content" class="text-center p-6 w-full">
+                    <!-- Сюда вставляется ошибка динамически -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Модальное окно "О нас" -->
+    <div id="about-modal" class="fixed inset-0 bg-textMain bg-opacity-70 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl overflow-hidden relative">
+            <button id="close-about-btn" class="absolute top-4 right-4 text-textSec hover:text-red-500 transition-colors z-10 bg-white rounded-full p-1 shadow-sm">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <div class="flex flex-col md:flex-row h-full">
+                <div class="md:w-2/5 min-h-[300px] md:min-h-[450px] bg-bgBase relative">
+                    <img src="./images/myphoto.jpg" onerror="this.src='https://placehold.co/400x600/ffbb98/344648?text=Мое+Фото'" alt="Иванюта Анастасия" class="w-full h-full object-cover">
+                </div>
+                <div class="md:w-3/5 p-8 md:p-10 flex flex-col justify-center bg-white relative">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-textMain mb-8 text-center tracking-widest uppercase">
+                        phant<span class="text-accent">♡</span>m
+                    </h2>
+                    
+                    <div class="space-y-4 text-textMain text-base md:text-lg">
+                        <p class="border-b border-gray-100 pb-2"><span class="font-bold text-textSec text-sm uppercase tracking-wider block mb-1">ФИО:</span> Иванюта Анастасия Николаевна</p>
+                        <p class="border-b border-gray-100 pb-2"><span class="font-bold text-textSec text-sm uppercase tracking-wider block mb-1">Возраст:</span> 18 (30.10.2007)</p>
+                        <p class="border-b border-gray-100 pb-2"><span class="font-bold text-textSec text-sm uppercase tracking-wider block mb-1">Образование:</span> студентка 4 курса "Серпуховского колледжа"</p>
+                        
+                        <div class="mt-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg text-red-700 italic font-medium shadow-sm">
+                            ~ я ненавижу C# и презираю backend.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно истории и корзины (Сайдбар) -->
+    <div id="history-modal" class="fixed inset-0 bg-textMain bg-opacity-50 z-40 hidden flex justify-end backdrop-blur-sm">
+        <div class="bg-bgBase w-full sm:w-96 h-full shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300" id="history-sidebar">
+            <div class="p-6 bg-accent text-white flex flex-col shadow-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="sidebar-title" class="text-xl font-bold tracking-wide">История сканов</h2>
+                    <button id="close-history-btn" class="text-white hover:text-bgBase transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="flex space-x-2 bg-white bg-opacity-20 p-1 rounded-lg">
+                    <button id="tab-history" class="flex-1 py-1 px-2 rounded bg-white text-accent font-bold text-sm transition-all shadow-sm">История</button>
+                    <button id="tab-trash" class="flex-1 py-1 px-2 rounded text-white hover:bg-white hover:bg-opacity-10 font-bold text-sm transition-all">Корзина</button>
+                </div>
+            </div>
+            <div id="sidebar-list" class="flex-grow overflow-y-auto p-4 space-y-3 relative pb-20">
+                <p class="text-textSec text-center italic mt-10">Пусто</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Детальный просмотр чека -->
+    <div id="history-detail-modal" class="fixed inset-0 bg-black bg-opacity-80 z-[60] hidden flex flex-col items-center justify-center p-4 sm:p-8 backdrop-blur-md transition-opacity">
+        <button id="close-history-detail-btn" class="absolute top-4 right-4 sm:top-8 sm:right-8 text-white hover:text-accent transition-colors z-10 bg-white bg-opacity-10 rounded-full p-2 hover:bg-opacity-20">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <div class="w-full max-w-lg bg-white rounded-3xl overflow-hidden flex flex-col shadow-2xl max-h-[90vh]">
+            <div class="bg-gray-100 flex justify-center items-center overflow-hidden h-64 sm:h-80 relative border-b-4 border-accent">
+                <img id="detail-image" src="" alt="Скан" class="w-full h-full object-contain p-2">
+            </div>
+            <div class="p-6 bg-white overflow-y-auto flex-grow">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 id="detail-title" class="text-xl font-bold text-textMain leading-tight pr-4"></h3>
+                    <div id="detail-total" class="text-xl font-extrabold text-accent whitespace-nowrap"></div>
+                </div>
+                <p id="detail-date" class="text-sm text-textSec mb-4"></p>
+                
+                <h4 class="text-xs font-bold text-textSec uppercase tracking-wider mb-2">Распознанные позиции:</h4>
+                <div id="detail-items" class="text-sm text-textMain space-y-2 border-t border-gray-100 pt-3">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контекстное меню ПКМ -->
+    <div id="context-menu" class="fixed hidden bg-white rounded-xl shadow-2xl border border-gray-100 py-2 w-56 z-[100] transition-opacity">
+        <div id="ctx-history-options">
+            <button id="ctx-edit-btn" class="w-full text-left px-4 py-2 hover:bg-bgBase hover:text-textMain text-textSec font-medium transition-colors flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                Изменить
+            </button>
+            <button id="ctx-delete-btn" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-500 font-medium transition-colors flex items-center border-t border-gray-50">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                В корзину
+            </button>
+        </div>
+        <div id="ctx-trash-options" class="hidden">
+            <button id="ctx-restore-btn" class="w-full text-left px-4 py-2 hover:bg-green-50 text-green-600 font-medium transition-colors flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                Восстановить
+            </button>
+            <button id="ctx-force-delete-btn" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 font-medium transition-colors flex items-center border-t border-gray-50">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                Удалить навсегда
+            </button>
+        </div>
+    </div>
+
+    <!-- Динамическое Окно Редактирования -->
+    <div id="edit-modal" class="fixed inset-0 bg-textMain bg-opacity-70 z-[110] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-5xl p-6 md:p-8 relative flex flex-col max-h-[90vh]">
+            <h3 class="text-2xl font-bold text-textMain mb-4 text-center border-b border-gray-100 pb-4">Редактировать скан</h3>
+            
+            <div class="overflow-y-auto flex-grow pr-2 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-textSec mb-1">Название магазина / Заголовок</label>
+                        <input type="text" id="edit-store-input" class="w-full border-2 border-gray-200 rounded-xl px-4 py-2 focus:border-accent focus:outline-none transition-colors text-textMain font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-textSec mb-1">Итоговая сумма</label>
+                        <input type="text" id="edit-total-input" class="w-full border-2 border-gray-200 rounded-xl px-4 py-2 focus:border-accent focus:outline-none transition-colors text-textMain font-medium">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-textSec mb-2 mt-4">Позиции (товары/услуги)</label>
+                    <div class="bg-gray-50 p-2 md:p-4 rounded-xl border border-gray-200">
+                        <div id="edit-items-headers" class="hidden md:flex gap-2 text-xs font-bold text-textSec uppercase tracking-wider mb-2 px-2">
+                        </div>
+                        <div id="edit-items-container" class="space-y-3">
+                        </div>
+                        <button id="add-edit-item-btn" class="mt-4 w-full py-2 border-2 border-dashed border-accent text-accent font-bold rounded-xl hover:bg-accent hover:text-white transition-colors flex justify-center items-center">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            Добавить позицию
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 mt-6 pt-4 border-t border-gray-100 shrink-0">
+                <button id="cancel-edit-btn" class="w-1/2 py-3 rounded-full font-bold text-textSec bg-gray-100 hover:bg-gray-200 transition-colors">Отмена</button>
+                <button id="save-edit-btn" class="w-1/2 py-3 rounded-full font-bold text-white bg-accent hover:bg-opacity-90 shadow-md transition-colors">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-upload');
+        const dropZone = document.getElementById('drop-zone');
+        const uploadContent = document.getElementById('upload-content');
+        const loadingContent = document.getElementById('loading-content');
+        const resultsSection = document.getElementById('results-section');
+        const resultsContent = document.getElementById('results-content');
+        const errorSection = document.getElementById('error-section');
+        const errorContent = document.getElementById('error-content');
+        
+        const uploadLabel = document.getElementById('upload-label'); 
+        const heroText = document.getElementById('hero-text');
+
+        const logoBtn = document.getElementById('logo-btn');
+        const backToMainBtn = document.getElementById('back-to-main-btn');
+
+        const aboutBtn = document.getElementById('about-btn');
+        const aboutModal = document.getElementById('about-modal');
+        const closeAboutBtn = document.getElementById('close-about-btn');
+
+        const historyBtn = document.getElementById('history-btn');
+        const trashBtn = document.getElementById('trash-btn');
+        const historyModal = document.getElementById('history-modal');
+        const historySidebar = document.getElementById('history-sidebar');
+        const closeHistoryBtn = document.getElementById('close-history-btn');
+        const sidebarList = document.getElementById('sidebar-list');
+        const sidebarTitle = document.getElementById('sidebar-title');
+
+        const tabHistory = document.getElementById('tab-history');
+        const tabTrash = document.getElementById('tab-trash');
+        let currentTab = 'history'; 
+
+        const historyDetailModal = document.getElementById('history-detail-modal');
+        const closeHistoryDetailBtn = document.getElementById('close-history-detail-btn');
+
+        const contextMenu = document.getElementById('context-menu');
+        const ctxHistoryOptions = document.getElementById('ctx-history-options');
+        const ctxTrashOptions = document.getElementById('ctx-trash-options');
+        const ctxEditBtn = document.getElementById('ctx-edit-btn');
+        const ctxDeleteBtn = document.getElementById('ctx-delete-btn');
+        const ctxRestoreBtn = document.getElementById('ctx-restore-btn');
+        const ctxForceDeleteBtn = document.getElementById('ctx-force-delete-btn');
+        let contextMenuTargetIndex = null;
+        let currentEditColumns = []; 
+
+        const editModal = document.getElementById('edit-modal');
+        const editStoreInput = document.getElementById('edit-store-input');
+        const editTotalInput = document.getElementById('edit-total-input');
+        const editItemsContainer = document.getElementById('edit-items-container');
+        const addEditItemBtn = document.getElementById('add-edit-item-btn');
+        const saveEditBtn = document.getElementById('save-edit-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+        function cleanupTrash() {
+            let trash = JSON.parse(localStorage.getItem('smartScanTrash')) || [];
+            const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            const filteredTrash = trash.filter(item => (now - item.deletedAt) < THIRTY_DAYS);
+            
+            if(trash.length !== filteredTrash.length) {
+                localStorage.setItem('smartScanTrash', JSON.stringify(filteredTrash));
+            }
+        }
+        cleanupTrash();
+
+        // СБРОС ИНТЕРФЕЙСА: Скрываем результаты, показываем белый фон загрузки БЕЗ багов
+        const resetToMain = () => {
+            resultsSection.classList.add('hidden');
+            errorSection.classList.add('hidden');
+            
+            // Восстанавливаем видимость дроп-зоны
+            dropZone.classList.remove('hidden');
+            
+            // Жестко сбрасываем эффекты наведения
+            dropZone.classList.remove('border-textSec', 'scale-[1.02]');
+            dropZone.classList.add('border-accent');
+            
+            uploadContent.classList.remove('hidden');
+            loadingContent.classList.add('hidden');
+            loadingContent.classList.remove('flex'); // ИСПРАВЛЕНО ЗАВИСАНИЕ ЛОАДЕРА!
+            
+            heroText.classList.remove('hidden');
+            fileInput.value = ''; 
+        };
+
+        if (logoBtn) logoBtn.addEventListener('click', resetToMain);
+        if (backToMainBtn) backToMainBtn.addEventListener('click', resetToMain);
+
+        const getThumbnail = (file) => new Promise(resolve => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            } else {
+                resolve(null);
+            }
+        });
+
+        async function handleFile(file) {
+            if (!file) return;
+
+            heroText.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            errorSection.classList.add('hidden');
+            
+            // Включаем лоадер
+            uploadContent.classList.add('hidden');
+            loadingContent.classList.remove('hidden');
+            loadingContent.classList.add('flex'); 
+            
+            const formData = new FormData();
+            formData.append('document', file); 
+
+            try {
+                const thumbnailBase64 = await getThumbnail(file);
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || `Ошибка сервера: ${response.status}`);
+                }
+
+                if (result && result.success) {
+                    const cols = result.data.columns || [
+                        {key: 'name', label: 'Наименование'}, {key: 'price', label: 'Цена'}
+                    ];
+                    
+                    const itemsRows = result.data.items.map(item => `
+                        <tr class="border-b border-gray-100 hover:bg-bgBase hover:bg-opacity-20 transition-colors">
+                            ${cols.map((col, idx) => `
+                                <td class="py-3 px-4 ${idx === 0 ? 'font-medium text-textMain' : 'text-sm text-textSec'} ${col.key === 'price' || col.key === 'total' ? 'text-right font-bold text-textMain' : ''}">
+                                    ${item[col.key] || '-'}
+                                </td>
+                            `).join('')}
+                        </tr>
+                    `).join('');
+
+                    saveToHistory({
+                        id: Date.now(),
+                        filename: file.name,
+                        date: new Date().toLocaleDateString('ru-RU', { hour: '2-digit', minute:'2-digit' }),
+                        thumbnail: thumbnailBase64,
+                        data: result.data
+                    });
+
+                    dropZone.classList.add('hidden'); 
+                    resultsSection.classList.remove('hidden');
+                    
+                    resultsContent.innerHTML = `
+                        <div class="text-left w-full">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b-2 border-accent pb-4">
+                                <div class="mb-2 sm:mb-0">
+                                    <h3 class="text-2xl font-bold text-textMain">${result.data.store}</h3>
+                                    <p class="text-sm text-textSec mt-1">${result.data.type} от ${result.data.date}</p>
+                                </div>
+                                <div class="bg-accent text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md">
+                                    Распознано
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse min-w-[500px]">
+                                    <thead>
+                                        <tr class="bg-bgBase bg-opacity-40 text-textSec text-xs uppercase tracking-wider">
+                                            ${cols.map((col, idx, arr) => `
+                                                <th class="py-3 px-4 ${idx === 0 ? 'rounded-tl-lg' : ''} ${idx === arr.length - 1 ? 'rounded-tr-lg' : ''} ${col.key === 'price' || col.key === 'total' ? 'text-right' : ''}">${col.label}</th>
+                                            `).join('')}
+                                        </tr>
+                                    </thead>
+                                    <tbody>${itemsRows}</tbody>
+                                    <tfoot>
+                                        <tr class="font-bold text-textMain text-xl bg-bgBase bg-opacity-60">
+                                            <td colspan="${cols.length > 1 ? cols.length - 1 : 1}" class="py-4 px-4 text-right rounded-bl-lg">ИТОГО:</td>
+                                            <td class="py-4 px-4 text-right rounded-br-lg text-accent">${result.data.total}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                // ПРИ ОШИБКЕ: Полностью скрываем лоадер и зону загрузки, показываем ТОЛЬКО ошибку
+                dropZone.classList.add('hidden');
+                
+                errorSection.classList.remove('hidden');
+                errorContent.innerHTML = `
+                    <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <p class="font-bold text-2xl text-textMain mb-2">Упс, ошибка!</p>
+                    <p class="mb-6 text-lg bg-red-50 text-red-600 p-4 rounded-xl border border-red-100">${error.message}</p>
+                    <button id="close-error-btn" class="px-8 py-3 bg-gray-200 text-textMain font-bold rounded-full hover:bg-gray-300 transition-all shadow-sm">Назад на главную</button>
+                `;
+                
+                document.getElementById('close-error-btn').addEventListener('click', resetToMain);
+            }
+        }
+
+        function saveToHistory(record) {
+            let history = JSON.parse(localStorage.getItem('smartScanHistory')) || [];
+            history.unshift(record);
+            localStorage.setItem('smartScanHistory', JSON.stringify(history));
+        }
+
+        function openHistoryDetail(index) {
+            let list = currentTab === 'history' 
+                ? JSON.parse(localStorage.getItem('smartScanHistory')) || []
+                : JSON.parse(localStorage.getItem('smartScanTrash')) || [];
+            
+            const item = list[index];
+            if (!item) return;
+
+            const imgEl = document.getElementById('detail-image');
+            if (item.thumbnail) {
+                imgEl.src = item.thumbnail;
+                imgEl.classList.remove('hidden');
+            } else {
+                imgEl.src = 'https://placehold.co/400x600/7d8e95/white?text=PDF+Документ';
+            }
+
+            document.getElementById('detail-title').textContent = item.data.store || item.filename;
+            document.getElementById('detail-date').textContent = `${item.data.type || 'Документ'} от ${item.date}`;
+            document.getElementById('detail-total').textContent = item.data.total;
+            
+            const itemsContainer = document.getElementById('detail-items');
+            const cols = item.data.columns || [
+                {key: 'name', label: 'Название'}, {key: 'category', label: 'Категория'}, {key: 'quantity', label: 'Кол-во'}, {key: 'price', label: 'Цена'}
+            ];
+            
+            if (item.data.items && item.data.items.length > 0) {
+                itemsContainer.innerHTML = item.data.items.map(i => `
+                    <div class="border-b border-gray-100 pb-3 mb-3 last:border-0 hover:bg-gray-50 transition-colors p-2 rounded flex flex-col space-y-1">
+                        ${cols.map(col => `
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-textSec font-medium text-xs uppercase tracking-wide">${col.label}:</span>
+                                <span class="font-bold text-textMain text-right pl-4">${i[col.key] || '-'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `).join('');
+            } else {
+                itemsContainer.innerHTML = '<p class="text-textSec italic">Данные не найдены</p>';
+            }
+
+            closeHistoryBtn.click();
+            setTimeout(() => {
+                historyDetailModal.classList.remove('hidden');
+            }, 200);
+        }
+
+        window.openHistoryDetail = openHistoryDetail;
+
+        if(closeHistoryDetailBtn) {
+            closeHistoryDetailBtn.addEventListener('click', () => historyDetailModal.classList.add('hidden'));
+        }
+        if(historyDetailModal) {
+            historyDetailModal.addEventListener('click', (e) => {
+                if (e.target === historyDetailModal) closeHistoryDetailBtn.click();
+            });
+        }
+
+        function renderSidebarList() {
+            let list = [];
+            if (currentTab === 'history') {
+                list = JSON.parse(localStorage.getItem('smartScanHistory')) || [];
+                sidebarTitle.textContent = "Сохраненные";
+            } else {
+                list = JSON.parse(localStorage.getItem('smartScanTrash')) || [];
+                sidebarTitle.textContent = "Корзина (30 дней)";
+            }
+            
+            if (list.length === 0) {
+                sidebarList.innerHTML = `<p class="text-textSec text-center italic mt-10">Пусто</p>`;
+                return;
+            }
+
+            sidebarList.innerHTML = list.map((item, index) => {
+                const imgTag = item.thumbnail 
+                    ? `<img src="${item.thumbnail}" class="w-12 h-12 rounded-lg object-cover border border-accent pointer-events-none">`
+                    : `<div class="w-12 h-12 rounded-lg bg-textSec bg-opacity-20 flex items-center justify-center text-xs font-bold text-textMain border border-textSec pointer-events-none">PDF</div>`;
+
+                let expireInfo = "";
+                if (currentTab === 'trash' && item.deletedAt) {
+                    const daysLeft = Math.ceil(30 - (Date.now() - item.deletedAt) / (1000 * 60 * 60 * 24));
+                    expireInfo = `<p class="text-[10px] text-red-500 font-bold mt-1 pointer-events-none">Осталось: ${daysLeft} дн.</p>`;
+                }
+
+                return `
+                <div class="history-item bg-white p-3 rounded-xl shadow-sm border ${currentTab === 'trash' ? 'border-red-200 bg-red-50' : 'border-transparent'} flex items-center space-x-4 hover:border-accent hover:shadow-md cursor-pointer transition-all transform hover:-translate-y-0.5" data-index="${index}" onclick="openHistoryDetail(${index})">
+                    ${imgTag}
+                    <div class="flex-grow overflow-hidden pointer-events-none">
+                        <p class="font-bold text-textMain text-sm truncate">${item.data.store || item.filename}</p>
+                        <p class="text-xs text-textSec">${item.date}</p>
+                        ${expireInfo}
+                    </div>
+                    <div class="text-accent font-bold text-sm whitespace-nowrap pointer-events-none">
+                        ${item.data.total}
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        const switchTab = (tab) => {
+            currentTab = tab;
+            if (tab === 'history') {
+                tabHistory.className = "flex-1 py-1 px-2 rounded bg-white text-accent font-bold text-sm transition-all shadow-sm";
+                tabTrash.className = "flex-1 py-1 px-2 rounded text-white hover:bg-white hover:bg-opacity-10 font-bold text-sm transition-all";
+                ctxHistoryOptions.classList.remove('hidden');
+                ctxTrashOptions.classList.add('hidden');
+            } else {
+                tabTrash.className = "flex-1 py-1 px-2 rounded bg-white text-accent font-bold text-sm transition-all shadow-sm";
+                tabHistory.className = "flex-1 py-1 px-2 rounded text-white hover:bg-white hover:bg-opacity-10 font-bold text-sm transition-all";
+                ctxHistoryOptions.classList.add('hidden');
+                ctxTrashOptions.classList.remove('hidden');
+            }
+            renderSidebarList();
+        }
+
+        tabHistory.addEventListener('click', () => switchTab('history'));
+        tabTrash.addEventListener('click', () => switchTab('trash'));
+
+        const openSidebar = (tab) => {
+            switchTab(tab);
+            historyModal.classList.remove('hidden');
+            setTimeout(() => historySidebar.classList.remove('translate-x-full'), 10);
+        }
+
+        if (historyBtn) historyBtn.addEventListener('click', (e) => { e.preventDefault(); openSidebar('history'); });
+        if (trashBtn) trashBtn.addEventListener('click', (e) => { e.preventDefault(); openSidebar('trash'); });
+
+        if (closeHistoryBtn) {
+            closeHistoryBtn.addEventListener('click', () => {
+                historySidebar.classList.add('translate-x-full');
+                setTimeout(() => historyModal.classList.add('hidden'), 300);
+            });
+        }
+        if (historyModal) {
+            historyModal.addEventListener('click', (e) => {
+                if (e.target === historyModal) closeHistoryBtn.click();
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#context-menu')) return;
+            contextMenu.classList.add('hidden');
+        });
+
+        sidebarList.addEventListener('contextmenu', (e) => {
+            const itemElement = e.target.closest('.history-item');
+            if (!itemElement) return;
+
+            e.preventDefault(); 
+            contextMenuTargetIndex = itemElement.dataset.index;
+
+            contextMenu.style.top = `${e.clientY}px`;
+            contextMenu.style.left = `${e.clientX}px`;
+            contextMenu.classList.remove('hidden');
+        });
+
+        ctxDeleteBtn.addEventListener('click', () => {
+            if (contextMenuTargetIndex === null) return;
+            let history = JSON.parse(localStorage.getItem('smartScanHistory')) || [];
+            let trash = JSON.parse(localStorage.getItem('smartScanTrash')) || [];
+            
+            const item = history.splice(contextMenuTargetIndex, 1)[0];
+            item.deletedAt = Date.now();
+            trash.unshift(item);
+
+            localStorage.setItem('smartScanHistory', JSON.stringify(history));
+            localStorage.setItem('smartScanTrash', JSON.stringify(trash));
+            
+            contextMenu.classList.add('hidden');
+            renderSidebarList(); 
+        });
+
+        ctxRestoreBtn.addEventListener('click', () => {
+             if (contextMenuTargetIndex === null) return;
+            let history = JSON.parse(localStorage.getItem('smartScanHistory')) || [];
+            let trash = JSON.parse(localStorage.getItem('smartScanTrash')) || [];
+            
+            const item = trash.splice(contextMenuTargetIndex, 1)[0];
+            delete item.deletedAt;
+            history.unshift(item);
+
+            localStorage.setItem('smartScanHistory', JSON.stringify(history));
+            localStorage.setItem('smartScanTrash', JSON.stringify(trash));
+            
+            contextMenu.classList.add('hidden');
+            renderSidebarList(); 
+        });
+
+        ctxForceDeleteBtn.addEventListener('click', () => {
+             if (contextMenuTargetIndex === null) return;
+            let trash = JSON.parse(localStorage.getItem('smartScanTrash')) || [];
+            trash.splice(contextMenuTargetIndex, 1);
+            localStorage.setItem('smartScanTrash', JSON.stringify(trash));
+            
+            contextMenu.classList.add('hidden');
+            renderSidebarList(); 
+        });
+
+        function getEditItemRowHTML(item, columns) {
+            const inputs = columns.map(col => `
+                <div class="flex-1 min-w-[100px]">
+                    <label class="block text-[10px] text-textSec mb-1 md:hidden uppercase font-bold mt-2">${col.label}</label>
+                    <input type="text" data-key="${col.key}" class="dynamic-col-input w-full border-2 border-gray-200 rounded-md px-2 py-1.5 focus:border-accent outline-none text-sm" value="${item[col.key] || ''}" placeholder="${col.label}">
+                </div>
+            `).join('');
+
+            return `
+                <div class="edit-item-row flex flex-col md:flex-row gap-2 bg-white p-3 rounded-lg shadow-sm border border-gray-100 items-end md:items-center relative">
+                    ${inputs}
+                    <div class="flex-shrink-0 mt-2 md:mt-0 w-8 flex justify-end md:justify-center">
+                        <button class="remove-item-btn text-red-400 hover:text-red-600 p-1 bg-red-50 rounded md:bg-transparent" title="Удалить строку">
+                            <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span class="text-sm font-bold md:hidden ml-1">Удалить</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        ctxEditBtn.addEventListener('click', () => {
+            if (contextMenuTargetIndex === null) return;
+            let history = JSON.parse(localStorage.getItem('smartScanHistory')) || [];
+            const item = history[contextMenuTargetIndex];
+            
+            editStoreInput.value = item.data.store || item.filename;
+            editTotalInput.value = item.data.total || '';
+            
+            currentEditColumns = item.data.columns || [
+                { key: 'name', label: 'Наименование' }, { key: 'category', label: 'Категория' },
+                { key: 'quantity', label: 'Кол-во' }, { key: 'price', label: 'Цена' }
+            ];
+
+            const headersContainer = document.getElementById('edit-items-headers');
+            headersContainer.innerHTML = currentEditColumns.map(col => `
+                <div class="flex-1 min-w-[100px]">${col.label}</div>
+            `).join('') + `<div class="w-8 text-center">Действие</div>`;
+
+            editItemsContainer.innerHTML = '';
+            if (item.data.items && item.data.items.length > 0) {
+                item.data.items.forEach((rowItem) => {
+                    editItemsContainer.insertAdjacentHTML('beforeend', getEditItemRowHTML(rowItem, currentEditColumns));
+                });
+            }
+            attachRemoveItemListeners();
+
+            contextMenu.classList.add('hidden');
+            editModal.classList.remove('hidden');
+        });
+
+        addEditItemBtn.addEventListener('click', () => {
+            editItemsContainer.insertAdjacentHTML('beforeend', getEditItemRowHTML({}, currentEditColumns));
+            attachRemoveItemListeners();
+            editItemsContainer.parentElement.parentElement.scrollTop = editItemsContainer.parentElement.parentElement.scrollHeight;
+        });
+
+        function attachRemoveItemListeners() {
+            const btns = editItemsContainer.querySelectorAll('.remove-item-btn');
+            btns.forEach(btn => {
+                btn.removeEventListener('click', removeRowHandler);
+                btn.addEventListener('click', removeRowHandler);
+            });
+        }
+
+        function removeRowHandler(e) {
+            const row = e.target.closest('.edit-item-row');
+            if(row) row.remove();
+        }
+
+        saveEditBtn.addEventListener('click', () => {
+            let history = JSON.parse(localStorage.getItem('smartScanHistory')) || [];
+            
+            if (history[contextMenuTargetIndex]) {
+                history[contextMenuTargetIndex].data.store = editStoreInput.value;
+                history[contextMenuTargetIndex].data.total = editTotalInput.value;
+                
+                const newItems = [];
+                const rows = editItemsContainer.querySelectorAll('.edit-item-row');
+                rows.forEach(row => {
+                    const rowData = {};
+                    let hasData = false;
+                    
+                    row.querySelectorAll('.dynamic-col-input').forEach(input => {
+                        const key = input.dataset.key;
+                        const val = input.value;
+                        rowData[key] = val;
+                        if (val.trim()) hasData = true; 
+                    });
+                    
+                    if (hasData) {
+                        newItems.push(rowData);
+                    }
+                });
+                
+                history[contextMenuTargetIndex].data.items = newItems;
+                history[contextMenuTargetIndex].data.columns = currentEditColumns; 
+                localStorage.setItem('smartScanHistory', JSON.stringify(history));
+            }
+            
+            editModal.classList.add('hidden');
+            renderSidebarList();
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            editModal.classList.add('hidden');
+        });
+
+        if (aboutBtn) {
+            aboutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                aboutModal.classList.remove('hidden');
+            });
+        }
+        if (closeAboutBtn) closeAboutBtn.addEventListener('click', () => aboutModal.classList.add('hidden'));
+        if (aboutModal) aboutModal.addEventListener('click', (e) => { if (e.target === aboutModal) closeAboutBtn.click(); });
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (event) => {
+                handleFile(event.target.files[0]);
+            });
+        }
+
+        if (dropZone) {
+            dropZone.addEventListener('click', (e) => {
+                if(e.target !== fileInput && e.target !== uploadLabel && !uploadLabel.contains(e.target)) {
+                     fileInput.click();
+                }
+            });
+
+            // ИСПРАВЛЕНИЕ ЦВЕТА: Убрали bg-opacity-50, только меняем границу!
+            dropZone.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                dropZone.classList.add('border-textSec', 'scale-[1.02]');
+                dropZone.classList.remove('border-accent');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-textSec', 'scale-[1.02]');
+                dropZone.classList.add('border-accent');
+            });
+
+            dropZone.addEventListener('drop', (event) => {
+                event.preventDefault();
+                dropZone.classList.remove('border-textSec', 'scale-[1.02]');
+                dropZone.classList.add('border-accent');
+                
+                if (event.dataTransfer.files.length > 0) {
+                    handleFile(event.dataTransfer.files[0]);
+                }
+            });
+        }
+
+        window.addEventListener("dragover", function(e) { e.preventDefault(); }, false);
+        window.addEventListener("drop", function(e) { e.preventDefault(); }, false);
+    </script>
+</body>
+</html>

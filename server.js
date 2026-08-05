@@ -4,7 +4,6 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const Jimp = require('jimp'); // ИЗМЕНЕНИЕ: Используем jimp вместо sharp
 
 // Используем НОВЕЙШУЮ библиотеку
 const { GoogleGenAI } = require('@google/genai');
@@ -40,33 +39,9 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
         
         const filePath = req.file.path;
         
-        // 🚀 СЖИМАЕМ ФОТО ПЕРЕД ОТПРАВКОЙ К GEMINI с помощью JIMP
-        let imageBuffer;
-        if (req.file.mimetype.startsWith('image/')) {
-            try {
-                // Читаем картинку
-                const image = await Jimp.read(filePath);
-                
-                // Изменяем размер (ширина 1000px, высота авто), качество 70%
-                image.resize(1000, Jimp.AUTO).quality(70);
-                
-                // Получаем буфер в формате JPEG
-                imageBuffer = await image.getBufferAsync(Jimp.MIME_JPEG);
-                
-                // Меняем mimetype на jpeg так как мы сконвертировали
-                req.file.mimetype = 'image/jpeg'; 
-            } catch (imgError) {
-                console.error("Ошибка при сжатии фото:", imgError);
-                // Если сжатие не удалось, используем оригинал
-                imageBuffer = fs.readFileSync(filePath); 
-            }
-        } else {
-            imageBuffer = fs.readFileSync(filePath); // Оставляем как есть для PDF
-        }
-        
         const imagePart = {
             inlineData: {
-                data: imageBuffer.toString("base64"),
+                data: fs.readFileSync(filePath).toString("base64"),
                 mimeType: req.file.mimetype
             }
         };
@@ -111,8 +86,7 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
         console.log("Отправляем запрос к Gemini...");
         
         const response = await ai.models.generateContent({
-            // ИСПОЛЬЗУЕМ 1.5-flash! 3.5 не существует и вызовет ошибку 503 или 404
-            model: 'gemini-1.5-flash', 
+            model: 'gemini-3.5-flash',
             contents: [prompt, imagePart],
             config: {
                 responseMimeType: "application/json", 
@@ -148,7 +122,7 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
     }
 });
 
-// Теперь сервер и фронтенд лежат в одной папке
+// ИСПРАВЛЕНИЕ: Теперь сервер и фронтенд лежат в одной папке!
 app.use(express.static(__dirname)); 
 
 app.use((req, res) => {

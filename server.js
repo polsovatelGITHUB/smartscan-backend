@@ -4,6 +4,7 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 
 // Используем НОВЕЙШУЮ библиотеку
 const { GoogleGenAI } = require('@google/genai');
@@ -39,10 +40,22 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
         
         const filePath = req.file.path;
         
+        // 🚀 СЖИМАЕМ ФОТО ПЕРЕД ОТПРАВКОЙ К GEMINI
+        // Если это PDF, sharp может выдать ошибку, поэтому делаем проверку
+        let imageBuffer;
+        if (req.file.mimetype.startsWith('image/')) {
+            imageBuffer = await sharp(filePath)
+                .resize({ width: 1200, withoutEnlargement: true }) // Уменьшаем разрешение
+                .jpeg({ quality: 70 }) // Сжимаем качество
+                .toBuffer();
+        } else {
+            imageBuffer = fs.readFileSync(filePath); // Оставляем как есть для PDF
+        }
+        
         const imagePart = {
             inlineData: {
-                data: fs.readFileSync(filePath).toString("base64"),
-                mimeType: req.file.mimetype
+                data: imageBuffer.toString("base64"),
+                mimeType: req.file.mimetype.startsWith('image/') ? 'image/jpeg' : req.file.mimetype
             }
         };
         
@@ -86,7 +99,7 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
         console.log("Отправляем запрос к Gemini...");
         
         const response = await ai.models.generateContent({
-            model: 'gemini-3.5-flash',
+            model: 'gemini-1.5-flash',
             contents: [prompt, imagePart],
             config: {
                 responseMimeType: "application/json", 

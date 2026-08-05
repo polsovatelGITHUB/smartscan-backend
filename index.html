@@ -24,7 +24,8 @@
 </head>
 <body class="bg-bgBase min-h-screen font-sans flex flex-col m-0 p-0 relative selection:bg-accent selection:text-white">
 
-    <header class="bg-accent bg-opacity-70 px-4 sm:px-6 py-4 flex flex-wrap justify-between items-center w-full z-20 relative shadow-sm gap-y-4">
+    <!-- ИСПРАВЛЕНИЕ: Меняем z-20 на z-[45], чтобы шапка была поверх затемнения боковой панели -->
+    <header class="bg-accent bg-opacity-70 px-4 sm:px-6 py-4 flex flex-wrap justify-between items-center w-full z-[45] relative shadow-sm gap-y-4">
         <div id="logo-btn" class="flex items-center space-x-2 text-textMain font-bold text-lg sm:text-xl cursor-pointer hover:text-white transition-colors" title="На главную">
             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
@@ -358,7 +359,10 @@
             fileInput.value = ''; 
         };
 
-        if (logoBtn) logoBtn.addEventListener('click', resetToMain);
+        // ИСПРАВЛЕНИЕ: Логотип теперь полностью обновляет страницу
+        if (logoBtn) logoBtn.addEventListener('click', () => window.location.reload());
+        
+        // Кнопка назад делает "мягкий" сброс без перезагрузки
         if (backToMainBtn) backToMainBtn.addEventListener('click', resetToMain);
 
         const getThumbnail = (file) => new Promise(resolve => {

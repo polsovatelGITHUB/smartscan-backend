@@ -123,11 +123,12 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
 });
 
 // ИСПРАВЛЕНИЕ: Указываем Express, где лежат файлы фронтенда
-// Так как server.js лежит в /backend, а файлы в /frontend:
 const frontendPath = path.join(__dirname, '../frontend');
 app.use(express.static(frontendPath)); 
 
-app.get('*', (req, res) => {
+// ИСПРАВЛЕНИЕ ОШИБКИ EXPRESS 5:
+// Убираем app.get('*', ...) и используем безопасный app.use
+app.use((req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 

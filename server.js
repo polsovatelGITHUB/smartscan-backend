@@ -92,13 +92,14 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
         console.log("Отправляем запрос к Gemini...");
        
         const response = await ai.models.generateContent({
-            model: 'publishers/google/models/gemini-1.5-flash', 
+            model: 'gemini-3.1-flash-lite', 
             contents: [prompt, imagePart],
             config: {
                 responseMimeType: "application/json",
                 temperature: 0.0,
             }
         });
+
         const aiText = response.text;
            
         let parsedResponse;

@@ -119,29 +119,29 @@
                 </div>
             </div>
         </section>
-    </main>
-
+    <!-- Модальное окно "О нас" -->
     <div id="about-modal" class="fixed inset-0 bg-textMain bg-opacity-70 z-50 hidden flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm transition-opacity overflow-y-auto">
         <div class="bg-white rounded-2xl sm:rounded-[2rem] shadow-2xl w-full max-w-3xl overflow-hidden relative my-auto">
             <button id="close-about-btn" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-textSec hover:text-red-500 transition-colors z-10 bg-white/80 rounded-full p-1.5 shadow-sm backdrop-blur-md">
                 <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             
-            <div class="flex flex-col md:flex-row h-full">
-                <div class="w-full md:w-2/5 h-64 sm:h-80 md:h-auto md:min-h-[450px] bg-bgBase relative">
-                    <img src="./images/myphoto.jpg" onerror="this.src='https://placehold.co/400x600/ffbb98/344648?text=Мое+Фото'" alt="Иванюта Анастасия" class="w-full h-full object-cover object-top md:object-center">
+            <!-- ИСПРАВЛЕНИЕ: Жестко задаем flex-row и фиксированную высоту, чтобы картинка была слева в полный рост -->
+            <div class="flex flex-row h-[450px] sm:min-h-[450px]">
+                <div class="w-2/5 h-full bg-bgBase relative shrink-0">
+                    <img src="./images/myphoto.jpg" onerror="this.src='https://placehold.co/400x600/ffbb98/344648?text=Мое+Фото'" alt="Иванюта Анастасия" class="w-full h-full object-cover object-center">
                 </div>
-                <div class="w-full md:w-3/5 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white relative">
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-textMain mb-6 sm:mb-8 text-center tracking-widest uppercase">
+                <div class="w-3/5 p-4 sm:p-6 md:p-10 flex flex-col justify-center bg-white relative overflow-y-auto">
+                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold text-textMain mb-4 sm:mb-8 text-center tracking-widest uppercase">
                         phant<span class="text-accent">♡</span>m
                     </h2>
                     
-                    <div class="space-y-3 sm:space-y-4 text-textMain text-sm sm:text-base md:text-lg">
-                        <p class="border-b border-gray-100 pb-2"><span class="font-bold text-textSec text-xs sm:text-sm uppercase tracking-wider block mb-1">ФИО:</span> Иванюта Анастасия Николаевна</p>
-                        <p class="border-b border-gray-100 pb-2"><span class="font-bold text-textSec text-xs sm:text-sm uppercase tracking-wider block mb-1">Возраст:</span> 18 (30.10.2007)</p>
-                        <p class="border-b border-gray-100 pb-2"><span class="font-bold text-textSec text-xs sm:text-sm uppercase tracking-wider block mb-1">Образование:</span> студентка 4 курса "Серпуховского колледжа"</p>
+                    <div class="space-y-2 sm:space-y-4 text-textMain text-[10px] sm:text-sm md:text-lg">
+                        <p class="border-b border-gray-100 pb-1 sm:pb-2"><span class="font-bold text-textSec text-[9px] sm:text-xs uppercase tracking-wider block mb-0.5 sm:mb-1">ФИО:</span> Иванюта Анастасия Николаевна</p>
+                        <p class="border-b border-gray-100 pb-1 sm:pb-2"><span class="font-bold text-textSec text-[9px] sm:text-xs uppercase tracking-wider block mb-0.5 sm:mb-1">Возраст:</span> 18 (30.10.2007)</p>
+                        <p class="border-b border-gray-100 pb-1 sm:pb-2"><span class="font-bold text-textSec text-[9px] sm:text-xs uppercase tracking-wider block mb-0.5 sm:mb-1">Образование:</span> студентка 4 курса "Серпуховского колледжа"</p>
                         
-                        <div class="mt-4 sm:mt-6 p-3 sm:p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg text-red-700 italic font-medium shadow-sm text-sm sm:text-base">
+                        <div class="mt-3 sm:mt-6 p-2 sm:p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg text-red-700 italic font-medium shadow-sm text-[9px] sm:text-base">
                             ~ я ненавижу C# и презираю backend.
                         </div>
                     </div>
@@ -371,30 +371,6 @@
             }
         });
 
-        // Mock API Response for demonstration since actual backend is not available here
-        const mockApiResponse = () => new Promise(resolve => {
-            setTimeout(() => {
-                resolve({
-                    success: true,
-                    data: {
-                        store: "ООО 'Ромашка'",
-                        type: "Кассовый чек",
-                        date: new Date().toLocaleDateString('ru-RU'),
-                        total: "1 250.00 ₽",
-                        columns: [
-                            {key: 'name', label: 'Наименование'},
-                            {key: 'price', label: 'Цена'}
-                        ],
-                        items: [
-                            {name: 'Молоко 1л', price: '100.00 ₽'},
-                            {name: 'Хлеб', price: '50.00 ₽'},
-                            {name: 'Яблоки 1кг', price: '150.00 ₽'}
-                        ]
-                    }
-                });
-            }, 1500); // Simulate network delay
-        });
-
         async function handleFile(file) {
             if (!file) return;
 
@@ -413,15 +389,15 @@
             try {
                 const thumbnailBase64 = await getThumbnail(file);
 
-                // Using Mock API instead of fetch for functional demonstration
-                // const response = await fetch('/api/upload', {
-                //     method: 'POST',
-                //     body: formData
-                // });
-                // const result = await response.json();
-                // if (!response.ok) throw new Error(result.error || `Ошибка сервера`);
+                // ИСПРАВЛЕНИЕ: Делаем реальный запрос к твоему Node.js серверу
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
                 
-                const result = await mockApiResponse();
+                const result = await response.json();
+                
+                if (!response.ok) throw new Error(result.error || `Ошибка сервера: ${response.status}`);
 
                 if (result && result.success) {
                     const cols = result.data.columns || [

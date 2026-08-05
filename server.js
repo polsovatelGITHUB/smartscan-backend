@@ -92,7 +92,7 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
         console.log("Отправляем запрос к Gemini...");
        
         const response = await ai.models.generateContent({
-            model: 'gemini-3.5-flash',
+            model: 'gemini-1.5-flash',
             contents: [prompt, imagePart],
             config: {
                 responseMimeType: "application/json",

@@ -122,14 +122,11 @@ app.post('/api/upload', upload.single('document'), async (req, res) => {
     }
 });
 
-// ИСПРАВЛЕНИЕ: Указываем Express, где лежат файлы фронтенда
-const frontendPath = path.join(__dirname, '../frontend');
-app.use(express.static(frontendPath)); 
+// ИСПРАВЛЕНИЕ: Теперь сервер и фронтенд лежат в одной папке!
+app.use(express.static(__dirname)); 
 
-// ИСПРАВЛЕНИЕ ОШИБКИ EXPRESS 5:
-// Убираем app.get('*', ...) и используем безопасный app.use
 app.use((req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => console.log(`🚀 Умный сервер запущен на порту ${PORT}`));
